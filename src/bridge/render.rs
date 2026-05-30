@@ -32,6 +32,12 @@ pub(super) fn render(
     let color_view = surface_texture
         .texture
         .create_view(&wgpu::TextureViewDescriptor::default());
+    let surface_format = bridge
+        .swapchain
+        .as_ref()
+        .ok_or_else(super::surface_not_attached_error)?
+        .config
+        .format;
 
     let mut encoder = bridge
         .device
@@ -84,7 +90,10 @@ pub(super) fn render(
                 resolve_target: None,
                 depth_slice: None,
                 ops: wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(to_wgpu_color(pass.clear_color)),
+                    load: wgpu::LoadOp::Clear(clear_color_for_surface(
+                        surface_format,
+                        pass.clear_color,
+                    )),
                     store: wgpu::StoreOp::Store,
                 },
             })],
@@ -217,5 +226,28 @@ fn to_wgpu_color(clear: [f32; 4]) -> wgpu::Color {
         g: clear[1] as f64,
         b: clear[2] as f64,
         a: clear[3] as f64,
+    }
+}
+
+fn clear_color_for_surface(format: wgpu::TextureFormat, clear: [f32; 4]) -> wgpu::Color {
+    let converted = if format.is_srgb() {
+        clear
+    } else {
+        [
+            linear_to_srgb(clear[0]),
+            linear_to_srgb(clear[1]),
+            linear_to_srgb(clear[2]),
+            clear[3],
+        ]
+    };
+    to_wgpu_color(converted)
+}
+
+fn linear_to_srgb(v: f32) -> f32 {
+    let v = v.clamp(0.0, 1.0);
+    if v <= 0.003_130_8 {
+        12.92 * v
+    } else {
+        1.055 * v.powf(1.0 / 2.4) - 0.055
     }
 }
