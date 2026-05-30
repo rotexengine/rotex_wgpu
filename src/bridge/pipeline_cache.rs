@@ -53,6 +53,11 @@ fn build_pipeline(
         .materials
         .get(&material_id)
         .ok_or_else(|| Error::recoverable(ErrorKind::ResourceNotFound("material")))?;
+    let wgpu_cull_mode = match material.cull_mode {
+        rotex_types::CullMode::None => None,
+        rotex_types::CullMode::Front => Some(wgpu::Face::Front),
+        rotex_types::CullMode::Back => Some(wgpu::Face::Back),
+    };
 
     let vertex_shader = create_shader_module_from_spirv(
         &bridge.device.raw,
@@ -91,7 +96,7 @@ fn build_pipeline(
                 topology: wgpu::PrimitiveTopology::TriangleList,
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
-                cull_mode: None,
+                cull_mode: wgpu_cull_mode,
                 unclipped_depth: false,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,
