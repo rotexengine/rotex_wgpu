@@ -2,10 +2,12 @@
 name = "rotex-wgpu"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
+description = "A wgpu backend for rotex"
 
 [dependencies]
 raw-window-handle = "0.6"
-rotex_types = { git = "https://github.com/rotexengine/rotex_types.git", branch = "main" }
+rotex-types = { version = "0.1.0" }
 wgpu = { version = "29.0.3", features = ["spirv"] }
 
 [dev-dependencies]
