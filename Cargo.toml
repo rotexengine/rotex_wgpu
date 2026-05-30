@@ -1,5 +1,5 @@
 [package]
-name = "rotex_wgpu"
+name = "rotex-wgpu"
 version = "0.1.0"
 edition = "2024"
 
