@@ -125,7 +125,6 @@ fn build_pipeline(
     Ok(pipeline)
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 fn create_shader_module_from_spirv(
     device: &wgpu::Device,
     label: &'static str,
