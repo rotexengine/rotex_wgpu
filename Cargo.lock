@@ -681,7 +681,7 @@ checksum = "19b30a45b0cd0bcca8037f3d0dc3421eaf95327a17cad11964fb8179b4fc4832"
 [[package]]
 name = "rotex_types"
 version = "0.1.0"
-source = "git+https://github.com/rotexengine/rotex_types.git?branch=main#c47dde8ed6ab0328fe373b59c18d2b45ccaaa76d"
+source = "git+https://github.com/rotexengine/rotex_types.git?branch=main#2332e73bd5926ad0155820fff488000a0c324c0d"
 dependencies = [
  "raw-window-handle",
 ]

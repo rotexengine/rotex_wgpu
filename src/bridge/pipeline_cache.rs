@@ -83,7 +83,7 @@ fn build_pipeline(
             layout: Some(&layout),
             vertex: wgpu::VertexState {
                 module: &vertex_shader,
-                entry_point: Some("vs_main"),
+                entry_point: Some(material.vertex_entry.as_str()),
                 buffers: &[vertex_layout],
                 compilation_options: wgpu::PipelineCompilationOptions::default(),
             },
@@ -110,7 +110,7 @@ fn build_pipeline(
             multisample: wgpu::MultisampleState::default(),
             fragment: Some(wgpu::FragmentState {
                 module: &fragment_shader,
-                entry_point: Some("fs_main"),
+                entry_point: Some(material.fragment_entry.as_str()),
                 targets: &[Some(wgpu::ColorTargetState {
                     format: swapchain.config.format,
                     blend: Some(wgpu::BlendState::REPLACE),

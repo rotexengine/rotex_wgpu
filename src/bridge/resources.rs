@@ -357,6 +357,11 @@ fn validate_material_descriptor(material: &MaterialDescriptor) -> Result<(), Err
             "material_shader_bytes_missing",
         )));
     }
+    if material.vertex_entry.is_empty() || material.fragment_entry.is_empty() {
+        return Err(Error::recoverable(ErrorKind::InvalidDescriptor(
+            "material_shader_entry_missing",
+        )));
+    }
     if material.vertex_shader_spv.len() % 4 != 0 || material.fragment_shader_spv.len() % 4 != 0 {
         return Err(Error::recoverable(ErrorKind::InvalidDescriptor(
             "material_shader_bytes_not_word_aligned",

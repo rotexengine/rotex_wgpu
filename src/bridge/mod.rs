@@ -74,7 +74,6 @@ impl WgpuBridge {
             "VertexStepMode is not modeled by rotex_types and is treated as vertex-rate input.",
             "VertexFormat support is limited to the rotex_types subset (Float32/Float32x2/Float32x3/Float32x4/Uint32).",
             "TextureFormat::Rgba8UnormSrgb is unavailable; textures use TextureFormat::Rgba8Unorm.",
-            "WGSL/custom shader entry points are not modeled by rotex_types; rotex_wgpu assumes vs_main/fs_main.",
             "Advanced Vulkan SPIR-V operations (for example hardware ray tracing or subgroup operations) are unsupported by WGPU WebAPI and may panic/fail during make_spirv translation.",
         ]
     }

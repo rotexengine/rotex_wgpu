@@ -50,7 +50,9 @@ mod tests {
                             enable_depth: true,
                             texture: None,
                             vertex_shader_spv: vec![0x03, 0x02, 0x23, 0x07],
+                            vertex_entry: "vs_main".to_string(),
                             fragment_shader_spv: vec![0x03, 0x02, 0x23, 0x07],
+                            fragment_entry: "fs_main".to_string(),
                         }),
                         ResourceCreateDescriptor::Texture(TextureDescriptor {
                             width: 1,
