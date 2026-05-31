@@ -1,20 +1,29 @@
 use super::WgpuDevice;
 use crate::error::{Error, ErrorKind};
 
-pub struct WgpuSurface {
+/// Window surface wrapper with a static wgpu lifetime.
+pub(crate) struct WgpuSurface {
     raw: wgpu::Surface<'static>,
 }
 
-pub struct WgpuSwapchain {
-    pub config: wgpu::SurfaceConfiguration,
+/// Configured swapchain state for a surface.
+pub(crate) struct WgpuSwapchain {
+    /// Active surface configuration.
+    pub(crate) config: wgpu::SurfaceConfiguration,
 }
 
 impl WgpuSurface {
-    pub fn new(raw: wgpu::Surface<'static>) -> Self {
+    /// Wraps an existing wgpu surface.
+    pub(crate) fn new(raw: wgpu::Surface<'static>) -> Self {
         Self { raw }
     }
 
-    pub fn create_swapchain(
+    /// Configures the surface for presentation at `width` by `height`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error`] when no compatible surface format or present mode exists.
+    pub(crate) fn create_swapchain(
         &self,
         device: &WgpuDevice,
         width: u32,
@@ -67,7 +76,8 @@ impl WgpuSurface {
         Ok(WgpuSwapchain { config })
     }
 
-    pub fn raw(&self) -> &wgpu::Surface<'static> {
+    /// Returns the underlying wgpu surface.
+    pub(crate) fn raw(&self) -> &wgpu::Surface<'static> {
         &self.raw
     }
 }

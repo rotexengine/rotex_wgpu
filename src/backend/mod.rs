@@ -1,1 +1,3 @@
-pub mod wgpu;
+//! GPU backend implementations.
+
+pub(crate) mod wgpu;

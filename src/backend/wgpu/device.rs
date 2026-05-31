@@ -11,18 +11,28 @@ use rotex_types::{
     QueueCategory,
 };
 
-pub struct WgpuInstance {
+/// Wrapper around a wgpu instance.
+pub(crate) struct WgpuInstance {
     raw: wgpu::Instance,
 }
 
-pub struct WgpuDevice {
-    pub adapter: wgpu::Adapter,
-    pub raw: wgpu::Device,
-    pub queue: wgpu::Queue,
+/// Selected adapter, device, and queue used by the bridge.
+pub(crate) struct WgpuDevice {
+    /// Adapter chosen during device creation.
+    pub(crate) adapter: wgpu::Adapter,
+    /// Underlying wgpu device.
+    pub(crate) raw: wgpu::Device,
+    /// Primary graphics queue.
+    pub(crate) queue: wgpu::Queue,
 }
 
 impl WgpuInstance {
-    pub async fn new(descriptor: &RotexInstanceDescriptor) -> Result<Self, Error> {
+    /// Creates a wgpu instance from `descriptor`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error`] when requested instance extensions are unsupported.
+    pub(crate) async fn new(descriptor: &RotexInstanceDescriptor) -> Result<Self, Error> {
         if !descriptor.required_instance_extensions.is_empty() {
             return Err(Error::recoverable(ErrorKind::Unsupported(
                 "required_instance_extensions_not_supported",
@@ -33,7 +43,13 @@ impl WgpuInstance {
         })
     }
 
-    pub async fn request_device(
+    /// Requests a compatible device and queue from `descriptor`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error`] when no compatible adapter is found or requested
+    /// device features are unsupported.
+    pub(crate) async fn request_device(
         &self,
         descriptor: &RotexDeviceDescriptor,
     ) -> Result<WgpuDevice, Error> {
@@ -96,7 +112,17 @@ impl WgpuInstance {
         })
     }
 
-    pub fn create_surface(
+    /// Creates a surface from raw window handles.
+    ///
+    /// # Safety
+    ///
+    /// `display_handle` and `window_handle` must refer to a valid, live window
+    /// for the duration of the returned [`WgpuSurface`].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error`] when wgpu surface creation fails.
+    pub(crate) fn create_surface(
         &self,
         display_handle: RawDisplayHandle,
         window_handle: RawWindowHandle,

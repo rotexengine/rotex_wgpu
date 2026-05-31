@@ -148,11 +148,7 @@ fn ensure_depth_target(bridge: &mut WgpuBridge) -> Result<&wgpu::TextureView, Er
             view_formats: &[],
         });
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
-        bridge.depth_target = Some(DepthTarget {
-            _texture: texture,
-            view,
-            size: current_size,
-        });
+        bridge.depth_target = Some(DepthTarget::new(texture, view, current_size));
     }
 
     Ok(&bridge

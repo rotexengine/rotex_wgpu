@@ -1,12 +1,13 @@
-pub mod backend;
-pub mod bridge;
-pub mod core;
+//! wgpu backend for [Rotex](https://github.com/rotexengine/rotex).
+
+mod backend;
+mod bridge;
 pub mod error;
 
-pub use backend::wgpu;
 pub use bridge::WgpuBridge;
 pub use error::{Error, ErrorKind, Severity};
 
+/// Re-export of [`rotex_types`](https://docs.rs/rotex-types) shared descriptors and IDs.
 pub mod rotex_types {
     pub use ::rotex_types::*;
 }
@@ -20,6 +21,7 @@ mod tests {
         ResourceUpdateDescriptor, TextureDescriptor, TextureFormat, VertexAttribute,
         VertexBufferLayout, VertexFormat,
     };
+    use super::rotex_types::CullMode;
 
     #[test]
     fn headless_resource_lifecycle_smoke() {
@@ -49,6 +51,7 @@ mod tests {
                         ResourceCreateDescriptor::Material(MaterialDescriptor {
                             enable_depth: true,
                             texture: None,
+                            cull_mode: CullMode::default(),
                             vertex_shader_spv: vec![0x03, 0x02, 0x23, 0x07],
                             vertex_entry: "vs_main".to_string(),
                             fragment_shader_spv: vec![0x03, 0x02, 0x23, 0x07],

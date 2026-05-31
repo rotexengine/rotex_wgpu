@@ -241,7 +241,6 @@ fn create_wgpu_texture(
     });
     Ok(WgpuTextureResource {
         texture: raw_texture,
-        view,
         bind_group,
         format,
         size: (width, height),
