@@ -17,7 +17,7 @@ pub(super) fn attach_surface(
     bridge.surface = Some(surface);
     bridge.swapchain = Some(swapchain);
     pipeline_cache::invalidate_all(bridge);
-    bridge.depth_target = None;
+    bridge.depth_targets.clear();
     Ok(())
 }
 
@@ -63,7 +63,7 @@ fn reconfigure_surface(bridge: &mut WgpuBridge, extent: Extent2D) -> Result<(), 
         .ok_or_else(surface_not_attached_error)?;
     let swapchain = surface.create_swapchain(&bridge.device, extent.width, extent.height)?;
     bridge.swapchain = Some(swapchain);
-    bridge.depth_target = None;
+    bridge.depth_targets.clear();
     pipeline_cache::invalidate_all(bridge);
     Ok(())
 }

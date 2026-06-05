@@ -1,3 +1,4 @@
+mod compute_pipeline_cache;
 mod init;
 mod pipeline_cache;
 mod render;
@@ -10,26 +11,37 @@ use std::collections::HashMap;
 use crate::backend::wgpu::{WgpuDevice, WgpuInstance, WgpuSurface, WgpuSwapchain};
 use crate::error::{Error, ErrorKind};
 use rotex_types::{
-    CreatedResources, DeviceDescriptor, Extent2D, FrameDescriptor, InstanceDescriptor,
-    ResourceBatchCreate, ResourceBatchUpdate, SceneDescriptor, SurfaceDescriptor,
+    CreatedResources, DeviceDescriptor, Extent2D, InstanceDescriptor, RenderCommand,
+    ResourceBatchCreate, ResourceBatchUpdate, SceneDescriptor, SurfaceDescriptor, TextureId,
+    TextureReadback,
 };
 
-use self::types::{DepthTarget, MaterialPipelineKey, ResourceStorage};
+use self::types::{DepthTarget, DepthTargetKey, MaterialPipelineKey, ResourceStorage};
 
 pub struct WgpuBridge {
     pub(crate) instance: WgpuInstance,
     pub(crate) device: WgpuDevice,
-    pub(crate) texture_bind_group_layout: wgpu::BindGroupLayout,
+    pub(crate) global_bind_group_layout: wgpu::BindGroupLayout,
+    pub(crate) material_bind_group_layout: wgpu::BindGroupLayout,
+    pub(crate) object_bind_group_layout: wgpu::BindGroupLayout,
     pub(crate) texture_sampler: wgpu::Sampler,
+    pub(crate) global_uniform_buffer: wgpu::Buffer,
+    pub(crate) object_uniform_buffer: wgpu::Buffer,
+    pub(crate) global_bind_group: wgpu::BindGroup,
+    pub(crate) object_bind_group: wgpu::BindGroup,
     pub(crate) fallback_texture_bind_group: wgpu::BindGroup,
+    pub(crate) object_aligned_stride: u32,
+    pub(crate) object_buffer_capacity: u32,
     pub(crate) surface: Option<WgpuSurface>,
     pub(crate) swapchain: Option<WgpuSwapchain>,
     pub(crate) resources: ResourceStorage,
     pub(crate) next_mesh_id: u64,
     pub(crate) next_material_id: u64,
     pub(crate) next_texture_id: u64,
+    pub(crate) next_buffer_id: u64,
+    pub(crate) next_compute_pipeline_id: u64,
     pub(crate) pipeline_cache: HashMap<MaterialPipelineKey, wgpu::RenderPipeline>,
-    pub(crate) depth_target: Option<DepthTarget>,
+    pub(crate) depth_targets: HashMap<DepthTargetKey, DepthTarget>,
 }
 
 impl WgpuBridge {
@@ -55,16 +67,22 @@ impl WgpuBridge {
         resources::update_resources(self, descriptor)
     }
 
-    pub fn render(
+    pub fn execute(
         &mut self,
         scene: &SceneDescriptor,
-        frame: &FrameDescriptor,
+        commands: &[RenderCommand],
     ) -> Result<(), Error> {
-        render::render(self, scene, frame)
+        render::execute(self, scene, commands)
     }
 
     pub fn resize(&mut self, extent: Extent2D) -> Result<(), Error> {
         surface::resize(self, extent)
+    }
+
+    pub fn read_texture(&mut self, _id: TextureId) -> Result<TextureReadback, Error> {
+        Err(Error::fatal(ErrorKind::Unsupported(
+            "Texture readback is not implemented on the WGPU backend",
+        )))
     }
 
     pub fn destroy(self) {}

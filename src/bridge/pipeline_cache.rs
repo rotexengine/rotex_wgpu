@@ -10,6 +10,7 @@ pub(super) fn pipeline_for_draw<'a>(
     vertex_layout_id: u64,
     vertex_layout: &WgpuVertexLayout,
     pass_uses_depth: bool,
+    color_format: wgpu::TextureFormat,
 ) -> Result<&'a wgpu::RenderPipeline, Error> {
     let material = bridge
         .resources
@@ -20,10 +21,11 @@ pub(super) fn pipeline_for_draw<'a>(
         material_id,
         vertex_layout_id,
         depth_enabled: pass_uses_depth && material.enable_depth,
+        color_format,
     };
 
     if !bridge.pipeline_cache.contains_key(&key) {
-        let pipeline = build_pipeline(bridge, material_id, vertex_layout, key.depth_enabled)?;
+        let pipeline = build_pipeline(bridge, material_id, vertex_layout, key)?;
         bridge.pipeline_cache.insert(key, pipeline);
     }
 
@@ -42,9 +44,9 @@ fn build_pipeline(
     bridge: &WgpuBridge,
     material_id: MaterialId,
     vertex_layout: &WgpuVertexLayout,
-    depth_enabled: bool,
+    key: MaterialPipelineKey,
 ) -> Result<wgpu::RenderPipeline, Error> {
-    let swapchain = bridge
+    let _swapchain = bridge
         .swapchain
         .as_ref()
         .ok_or_else(surface_not_attached_error)?;
@@ -74,7 +76,11 @@ fn build_pipeline(
         .raw
         .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("rotex-wgpu-pipeline-layout"),
-            bind_group_layouts: &[Some(&bridge.texture_bind_group_layout)],
+            bind_group_layouts: &[
+                Some(&bridge.global_bind_group_layout),
+                Some(&bridge.material_bind_group_layout),
+                Some(&bridge.object_bind_group_layout),
+            ],
             immediate_size: 0,
         });
 
@@ -101,7 +107,7 @@ fn build_pipeline(
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,
             },
-            depth_stencil: if depth_enabled {
+            depth_stencil: if key.depth_enabled {
                 Some(wgpu::DepthStencilState {
                     format: wgpu::TextureFormat::Depth24Plus,
                     depth_write_enabled: Some(true),
@@ -117,7 +123,7 @@ fn build_pipeline(
                 module: &fragment_shader,
                 entry_point: Some(material.fragment_entry.as_str()),
                 targets: &[Some(wgpu::ColorTargetState {
-                    format: swapchain.config.format,
+                    format: key.color_format,
                     blend: Some(wgpu::BlendState::REPLACE),
                     write_mask: wgpu::ColorWrites::ALL,
                 })],
