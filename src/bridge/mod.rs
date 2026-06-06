@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use crate::backend::wgpu::{WgpuDevice, WgpuInstance, WgpuSurface, WgpuSwapchain};
 use crate::error::{Error, ErrorKind};
 use rotex_core::{
-    Error as CoreError, ErrorKind as CoreErrorKind, RenderBackend, Severity as CoreSeverity,
+    Error as CoreError, ErrorKind as CoreErrorKind, GpuBackend, Severity as CoreSeverity,
 };
 use rotex_types::{
     CreatedResources, DeviceDescriptor, Extent2D, InstanceDescriptor, RenderCommand,
@@ -119,7 +119,7 @@ fn to_core_error(error: Error) -> CoreError {
     CoreError { kind, severity }
 }
 
-impl RenderBackend for WgpuBridge {
+impl GpuBackend for WgpuBridge {
     fn attach_surface(
         &mut self,
         surface_descriptor: rotex_types::SurfaceDescriptor,
