@@ -10,6 +10,9 @@ use std::collections::HashMap;
 
 use crate::backend::wgpu::{WgpuDevice, WgpuInstance, WgpuSurface, WgpuSwapchain};
 use crate::error::{Error, ErrorKind};
+use rotex_core::{
+    Error as CoreError, ErrorKind as CoreErrorKind, RenderBackend, Severity as CoreSeverity,
+};
 use rotex_types::{
     CreatedResources, DeviceDescriptor, Extent2D, InstanceDescriptor, RenderCommand,
     ResourceBatchCreate, ResourceBatchUpdate, SceneDescriptor, SurfaceDescriptor, TextureId,
@@ -99,4 +102,65 @@ impl WgpuBridge {
 
 pub(crate) fn surface_not_attached_error() -> Error {
     Error::fatal(ErrorKind::SurfaceNotAttached)
+}
+
+fn to_core_error(error: Error) -> CoreError {
+    let severity = match error.severity {
+        crate::error::Severity::Fatal => CoreSeverity::Fatal,
+        crate::error::Severity::Info
+        | crate::error::Severity::Warning
+        | crate::error::Severity::Recoverable => CoreSeverity::Warning,
+    };
+    let kind = match error.kind {
+        crate::error::ErrorKind::NoCompatibleDevice => CoreErrorKind::NoCompatibleDevice,
+        crate::error::ErrorKind::Unsupported(message) => CoreErrorKind::Unsupported(message),
+        other => CoreErrorKind::Backend(format!("{other:?}")),
+    };
+    CoreError { kind, severity }
+}
+
+impl RenderBackend for WgpuBridge {
+    fn attach_surface(
+        &mut self,
+        surface_descriptor: rotex_types::SurfaceDescriptor,
+    ) -> Result<(), CoreError> {
+        WgpuBridge::attach_surface(self, surface_descriptor).map_err(to_core_error)
+    }
+
+    fn create_resources(
+        &mut self,
+        descriptor: rotex_types::ResourceBatchCreate,
+    ) -> Result<rotex_types::CreatedResources, CoreError> {
+        WgpuBridge::create_resources(self, descriptor).map_err(to_core_error)
+    }
+
+    fn update_resources(
+        &mut self,
+        descriptor: rotex_types::ResourceBatchUpdate,
+    ) -> Result<(), CoreError> {
+        WgpuBridge::update_resources(self, descriptor).map_err(to_core_error)
+    }
+
+    fn execute(
+        &mut self,
+        scene: &rotex_types::SceneDescriptor,
+        commands: &[rotex_types::RenderCommand],
+    ) -> Result<(), CoreError> {
+        WgpuBridge::execute(self, scene, commands).map_err(to_core_error)
+    }
+
+    fn resize(&mut self, extent: rotex_types::Extent2D) -> Result<(), CoreError> {
+        WgpuBridge::resize(self, extent).map_err(to_core_error)
+    }
+
+    fn read_texture(
+        &mut self,
+        id: rotex_types::TextureId,
+    ) -> Result<rotex_types::TextureReadback, CoreError> {
+        WgpuBridge::read_texture(self, id).map_err(to_core_error)
+    }
+
+    fn destroy(self: Box<Self>) {
+        WgpuBridge::destroy(*self);
+    }
 }
